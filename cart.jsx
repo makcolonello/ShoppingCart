@@ -1,10 +1,13 @@
+
+
 // simulate getting products from DataBase
 const products = [
-  { name: "Apples_:", country: "Italy", cost: 3, instock: 10 },
-  { name: "Oranges:", country: "Spain", cost: 4, instock: 3 },
-  { name: "Beans__:", country: "USA", cost: 2, instock: 5 },
-  { name: "Cabbage:", country: "USA", cost: 1, instock: 8 },
+  { name: "Apples", country: "Italy", cost: 3, instock: 10 },
+  { name: "Oranges", country: "Spain", cost: 4, instock: 3 },
+  { name: "Beans", country: "USA", cost: 2, instock: 5 },
+  { name: "Cabbage", country: "USA", cost: 1, instock: 8 },
 ];
+const photos = ["Images/apple.png", "Images/orange.png", "Images/beans.png", "Images/cabbage.png"];
 //=========Cart=============
 const Cart = (props) => {
   const { Card, Accordion, Button } = ReactBootstrap;
@@ -33,8 +36,8 @@ const useDataApi = (initialUrl, initialData) => {
         const result = await axios(url);
         console.log("FETCH FROM URl");
         if (!didCancel) {
-          const attributes = result.data.data.map(item => item.attributes);
-          dispatch({ type: "FETCH_SUCCESS", payload: attributes });
+          
+          dispatch({ type: "FETCH_SUCCESS", payload: result.data });
         }
       } catch (error) {
         if (!didCancel) {
@@ -102,37 +105,51 @@ const Products = (props) => {
   // Fetch Data
   const addToCart = (e) => {
     let name = e.target.name;
+    let instock = e.currentTarget.max
+    console.log(`name=${name} instock=${instock}`);
+
+    if (instock <= 0) return;
     let item = items.filter((item) => item.name == name);
-    if (item[0].instock == 0) return;
-    item[0].instock = item[0].instock - 1;
     console.log(`add to Cart ${JSON.stringify(item)}`);
+
+    let newItems = items.map((item) => {
+      if (item.name == name) {
+        item.instock--;
+      }
+      return item;
+    });
+    setItems([...newItems]);
     setCart([...cart, ...item]);
     //doFetch(query);
   };
-  const deleteCartItem = (delIndex) => {
-    // delIndex is the cart index not the product list index
-    let newCart = cart.filter((item, i) => delIndex != i);
-    let target = cart.filter((item, index) => delIndex == index);
-    let newItems = items.map((item, index) => {
-      if (item.name == target[0].name) item.instock = item.instock + 1;
-      return item
+  const deleteCartItem = (index) => {
+    let name = cart[index].name;
+    console.log(`name=${name} index=${index}`);
+    let item = items.filter((item) => item.name == name);
+    console.log(`Returning item to stock: ${JSON.stringify(item)} `);
+    let newItems = items.map((item) => {
+      if (item.name == name) {
+        item.instock++;
+      }
+      return item;
     });
+    setItems([...newItems]);
+    let newCart = cart.filter((item, i) => delIndex != i);
     setCart(newCart);
-    setItems(newItems);
   };
-  const photos = ["apple.png", "orange.png", "beans.png", "cabbage.png"];
-
   let list = items.map((item, index) => {
-   let n = index + 1049;
+    let n = index +1049;
     let url = "https://picsum.photos/id/" + n + "/50/50";
+  
+  
 
     return (
       <li key={index}>
-        <Image src={url} width={70} roundedCircle></Image>
+        <Image src={photos[index % 4]} width={70} roundedCircle></Image>
         <Button variant="primary" size="large">
-          {item.name}:${item.cost}-Stock={item.instock}
+          {item.name} Cost ${item.cost} Available: {item.instock}
         </Button>
-        <input name={item.name} type="submit" onClick={addToCart}></input>
+        <input name={item.name} max={item.instock}  type="submit" value="Add to Cart" onClick={addToCart}></input>
       </li>
     );
   });
@@ -144,13 +161,13 @@ const Products = (props) => {
         {item.name}
       </Accordion.Toggle>
        </Card.Header>
-      <Accordian.Collapse
+      <Accordion.Collapse 
        onClick={() => deleteCartItem(index)}
         eventKey={1 + index}>
         <Card.Body>
           $ {item.cost} from {item.country}
           </Card.Body>
-      </Accordian.Collapse>
+      </Accordion.Collapse>
     </Card>
     );
   });
@@ -220,5 +237,6 @@ const Products = (props) => {
     </Container>
   );
 };
+
 // ========================================
 ReactDOM.render(<Products />, document.getElementById("root"));
