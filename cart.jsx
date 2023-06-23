@@ -1,3 +1,4 @@
+import React from 'react';
 
 
 // simulate getting products from DataBase
@@ -237,6 +238,14 @@ const Products = (props) => {
     </Container>
   );
 };
-
+if (typeof module !== 'undefined')
+{
+    module.exports = {Cart};
+}
 // ========================================
 ReactDOM.render(<Products />, document.getElementById("root"));
+
+
+
+
+export default Cart
